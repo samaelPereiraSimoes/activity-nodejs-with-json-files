@@ -33,18 +33,18 @@ var server = http.createServer(function(request, response) {
 function salesCatalog(objSales, objCatalog) {
 
 	salesCatalog = [];
+
+	var teste;
 	objSales.map( function(sale) { //varrendo as vendas 
 		sale.catalog = objCatalog.filter(function(catalog) { //após varrer vou pegar o produto			
 			return sale.product_id === catalog.id.toString();
 		});
 
-		sale.qtproduto = sale.catalog.length; //pegando quantidade de produto
-
 		if (sale.catalog[0] != "" && sale.catalog[0] != undefined) {
-
+			sale.qtproduto = sale.catalog.length; //pegando quantidade de produto/
 			sale.value = sale.qtproduto * parseFloat(sale.catalog[0].price);
-			//console.log(parseFloat(sale.catalog[0].price) * sale.qtproduto);
 		}	
+
 		salesCatalog.push(sale);
 	});
 
@@ -70,9 +70,7 @@ function valCatalogDebCre (valdateCatalog){
 
   		return dataByMonth;
 	});	
-
 	console.log(dataByMonth);
-
 };
 
 server.listen(3000);
@@ -91,8 +89,8 @@ server.listen(3000);
 
 	fechamento do cartão de crédito é no dia 5 de cada mes
 		- Parceka cai no dia 10 de cada mes
-			exemplo comprei uma bola dia dia 05/10/2018 o pagamento ira cair			dia 10/10/2018.
-			se a compra tivesse sido feita dia 04/10/2018 o pagamento iria cair 			dia 10/09
+			exemplo comprei uma bola dia dia 05/10/2018 o pagamento ira cair			dia 10/11/2018.
+			se a compra tivesse sido feita dia 04/10/2018 o pagamento iria cair 			dia 10/10
 	validar se foi débito ou crédito
 	crédito cai o pagamento no mesmo dia
 
