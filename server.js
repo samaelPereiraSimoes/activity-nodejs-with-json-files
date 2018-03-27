@@ -14,10 +14,16 @@ var server = http.createServer(function(request, response) {
 
 		valueSalesCatalog = salesCatalog(objSales, objCatalog);
 		valdateCatalog = valCatalogDebCre(valueSalesCatalog);
-		
 		console.log(valdateCatalog);
-	}
+		var submit = "https://ikd29r1hsl.execute-api.us-west-1.amazonaws.com/prod/contaazul/grade"
 
+		var valuesubmit = {
+	        "token": "2dbc7f45b9a3bf1a3c5bbd49017fe51f07a5d2a2",
+	        "email": "samael.simoes@gmail.com",
+	        "answer": valdateCatalog
+	    }
+
+	}
 	fs.readFile('./public/' + page, function(err, data) {
 		var headStatus = 200;
 	
@@ -61,22 +67,30 @@ function valCatalogDebCre (valdateCatalog){
 			month = date.getMonth() + 1;
 		}
 
-		year  = ('' + date.getFullYear()).slice(-2); // ano
+		year = date.getFullYear(); // ano
 		
 		if(month != undefined) {	
-			group =  day + '-' + month + '-' + year;
+			group =  year + '-' + month + '-' + day;
 		}
 
 		if(datum.catalog[0] != "" && datum.catalog[0] != undefined) {	
 			value = parseFloat(datum.catalog[0].price);
 		}
-		
+
 		dataByMonth[group] = (dataByMonth[group] || 0) + value;
+
   		return dataByMonth;
-	},{});	
+	});	
 
 	hashSaleCatalog = Object.keys(dataByMonth).map(function(group){
-	  return { name: group, value: dataByMonth[group] };
+		var valuet;
+		
+		if(dataByMonth[group] != undefined){
+			valuet = dataByMonth[group];
+			console.log(dataByMonth[group]);
+		};
+
+	 	 return { date: group, value: valuet};
 	});
 
 	return hashSaleCatalog;
