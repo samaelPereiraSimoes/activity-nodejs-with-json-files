@@ -14,6 +14,7 @@ var server = http.createServer(function(request, response) {
 
 		valueSalesCatalog = salesCatalog(objSales, objCatalog);
 		valdateCatalog = valCatalogDebCre(valueSalesCatalog);
+		console.log(valdateCatalog);
 	}
 
 	fs.readFile('./public/' + page, function(err, data) {
@@ -40,8 +41,9 @@ function salesCatalog(objSales, objCatalog) {
 			return sale.product_id === catalog.id.toString();
 		});
 
-		if (sale.catalog[0] != "" && sale.catalog[0] != undefined) {
-			sale.qtproduto = sale.catalog.length; //pegando quantidade de produto/
+		sale.qtproduto = sale.catalog.length; //pegando quantidade de produto/
+
+		if (sale.catalog[0] != "" && sale.catalog[0] != undefined) {			
 			sale.value = sale.qtproduto * parseFloat(sale.catalog[0].price);
 		}	
 
@@ -52,25 +54,32 @@ function salesCatalog(objSales, objCatalog) {
 };
 
 function valCatalogDebCre (valdateCatalog){
-	var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 	var dataByMonth = valdateCatalog.reduce(function(dataByMonth, datum){
 		var date, day, month, year, value, group; 
 
 		date = new Date(datum.timestamp);
 
 		day = date.getDate(); // dia
-		month = monthNames[date.getMonth()]; // mes
+
+		if(date.getMonth() < 10 && date.getMonth()) {
+			month = date.getMonth() + 1;
+		} else if(date.getMonth() > 10 && date.getMonth() != undefined) {
+			month = date.getMonth() + 1;
+		}
+
 		year  = ('' + date.getFullYear()).slice(-2); // ano
-		group =  day + '\'' + month + '\'' + year;
+		
+		if(month != undefined) {	
+			group =  day + '-' + month + '-' + year;
+		}
 
-		value = datum.value;
-
-		dataByMonth[group] = (dataByMonth[group] || 0) + value;
-
+		if(datum.value != undefined && datum.value != "") {
+			dataByMonth[group] = (dataByMonth[group] || 0) + datum.value;
+		}
+		
   		return dataByMonth;
 	});	
-	console.log(dataByMonth);
+	return dataByMonth;
 };
 
 server.listen(3000);
