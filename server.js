@@ -14,6 +14,12 @@ var server = http.createServer(function(request, response) {
 
 		valueSalesCatalog = salesCatalog(objSales, objCatalog);
 		valdateCatalog = valCatalogDebCre(valueSalesCatalog);
+
+		// É preciso considerar que a data de fechamento do cartão de crédito é no dia 5 de cada mês.
+		// Porém, a parcela em si cai apenas no dia 10. Logo, se uma compra ou pagamento foi feito dia 2017-09-05 em diante, 
+		//a primeira parcela cairá no dia 2017-10-10. Já se tivesse sido no dia 2017-09-04, cairia em 2017-09-10.
+		//	Se o método de pagamento for débito, cairá no mesmo instante descrito na coluna timestamp.
+
 		console.log(valdateCatalog);
 		var submit = "https://ikd29r1hsl.execute-api.us-west-1.amazonaws.com/prod/contaazul/grade"
 
@@ -22,7 +28,6 @@ var server = http.createServer(function(request, response) {
 	        "email": "samael.simoes@gmail.com",
 	        "answer": valdateCatalog
 	    }
-
 	}
 	fs.readFile('./public/' + page, function(err, data) {
 		var headStatus = 200;
@@ -54,7 +59,9 @@ function salesCatalog(objSales, objCatalog) {
 	return salesCatalog;
 };
 
-function valCatalogDebCre (valdateCatalog){
+function valCatalogDebCre (valdateCatalog){ 
+	// aqui falta colocar o tipo se é debito e credito não sei como fazer, 
+	//não sei se está 100¨% alguns valores esta vindo como NaN
 	var dataByMonth = valdateCatalog.reduce(function(dataByMonth, datum){
 		var date, day, month, year, group, value, hashSaleCatalog; 
 
