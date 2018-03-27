@@ -14,6 +14,7 @@ var server = http.createServer(function(request, response) {
 
 		valueSalesCatalog = salesCatalog(objSales, objCatalog);
 		valdateCatalog = valCatalogDebCre(valueSalesCatalog);
+		
 		console.log(valdateCatalog);
 	}
 
@@ -41,12 +42,6 @@ function salesCatalog(objSales, objCatalog) {
 			return sale.product_id === catalog.id.toString();
 		});
 
-		sale.qtproduto = sale.catalog.length; //pegando quantidade de produto/
-
-		if (sale.catalog[0] != "" && sale.catalog[0] != undefined) {			
-			sale.value = sale.qtproduto * parseFloat(sale.catalog[0].price);
-		}	
-
 		salesCatalog.push(sale);
 	});
 
@@ -55,10 +50,9 @@ function salesCatalog(objSales, objCatalog) {
 
 function valCatalogDebCre (valdateCatalog){
 	var dataByMonth = valdateCatalog.reduce(function(dataByMonth, datum){
-		var date, day, month, year, value, group; 
+		var date, day, month, year, group, value, hashSaleCatalog; 
 
 		date = new Date(datum.timestamp);
-
 		day = date.getDate(); // dia
 
 		if(date.getMonth() < 10 && date.getMonth()) {
@@ -73,13 +67,19 @@ function valCatalogDebCre (valdateCatalog){
 			group =  day + '-' + month + '-' + year;
 		}
 
-		if(datum.value != undefined && datum.value != "") {
-			dataByMonth[group] = (dataByMonth[group] || 0) + datum.value;
+		if(datum.catalog[0] != "" && datum.catalog[0] != undefined) {	
+			value = parseFloat(datum.catalog[0].price);
 		}
 		
+		dataByMonth[group] = (dataByMonth[group] || 0) + value;
   		return dataByMonth;
-	});	
-	return dataByMonth;
+	},{});	
+
+	hashSaleCatalog = Object.keys(dataByMonth).map(function(group){
+	  return { name: group, value: dataByMonth[group] };
+	});
+
+	return hashSaleCatalog;
 };
 
 server.listen(3000);
