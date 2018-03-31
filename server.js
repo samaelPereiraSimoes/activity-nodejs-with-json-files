@@ -1,8 +1,10 @@
 var http = require('http'); //recurso do nod
 var fs = require('fs'); //recurso para poder ler os arquivos
 
+
+
 var server = http.createServer(function(request, response) {
-	var page, objSales, objCatalog, objPurchases, valueSalesCatalog, valdateCatalog;
+	var page, objSales, objCatalog, objPurchases, valueSalesCatalog, valdateCatalog, valPurchases;
 	
 	page = 'index.html';
 	
@@ -13,14 +15,16 @@ var server = http.createServer(function(request, response) {
 		objPurchases = JSON.parse(fs.readFileSync('public/purchases.json', 'utf8'));
 
 		valueSalesCatalog = salesCatalog(objSales, objCatalog);
-		valdateCatalog = valCatalogDebCre(valueSalesCatalog);
 
+		valdateCatalog = formatDataCatalog(valueSalesCatalog); //formato das vendas do catalog
+		valPurchases = valPurchasesDate(objPurchases); //formato das compras do catalogo 
+
+
+		console.log(valPurchases);
 		// É preciso considerar que a data de fechamento do cartão de crédito é no dia 5 de cada mês.
 		// Porém, a parcela em si cai apenas no dia 10. Logo, se uma compra ou pagamento foi feito dia 2017-09-05 em diante, 
 		//a primeira parcela cairá no dia 2017-10-10. Já se tivesse sido no dia 2017-09-04, cairia em 2017-09-10.
 		//	Se o método de pagamento for débito, cairá no mesmo instante descrito na coluna timestamp.
-
-		console.log(valdateCatalog);
 		var submit = "https://ikd29r1hsl.execute-api.us-west-1.amazonaws.com/prod/contaazul/grade"
 
 		var valuesubmit = {
@@ -44,64 +48,58 @@ var server = http.createServer(function(request, response) {
 });
 
 function salesCatalog(objSales, objCatalog) {
+	var salesCatalog = [];
 
-	salesCatalog = [];
-
-	var teste;
 	objSales.map( function(sale) { //varrendo as vendas 
-		sale.catalog = objCatalog.filter(function(catalog) { //após varrer vou pegar o produto			
+		sale.catalog = objCatalog.filter(function(catalog) { //após varrer vou pegar o produto	
+
 			return sale.product_id === catalog.id.toString();
 		});
-
 		salesCatalog.push(sale);
 	});
 
 	return salesCatalog;
 };
 
-function valCatalogDebCre (valdateCatalog){ 
-	// aqui falta colocar o tipo se é debito e credito não sei como fazer, 
-	//não sei se está 100¨% alguns valores esta vindo como NaN
-	var dataByMonth = valdateCatalog.reduce(function(dataByMonth, datum){
-		var date, day, month, year, group, value, hashSaleCatalog; 
+function formatDataCatalog(valdateCatalog){ 
 
-		date = new Date(datum.timestamp);
-		day = date.getDate(); // dia
+	var result = valdateCatalog.map( function(item) {
+		var day, month, years, valueSale, type, data;
 
-		if(date.getMonth() < 10 && date.getMonth()) {
-			month = date.getMonth() + 1;
-		} else if(date.getMonth() > 10 && date.getMonth() != undefined) {
-			month = date.getMonth() + 1;
+		date = new Date(item.timestamp);
+		day = date.getDate(); 
+		month = date.getMonth() + 1;
+		year = date.getFullYear();
+
+		if(item.catalog[0] != "" && item.catalog[0] != undefined) {	
+			valueSale = item.catalog[0].price;
+			data = { date: year + "-" + month + "-" + day, value: valueSale, type: item.payment_method };
 		}
 
-		year = date.getFullYear(); // ano
-		
-		if(month != undefined) {	
-			group =  year + '-' + month + '-' + day;
-		}
-
-		if(datum.catalog[0] != "" && datum.catalog[0] != undefined) {	
-			value = parseFloat(datum.catalog[0].price);
-		}
-
-		dataByMonth[group] = (dataByMonth[group] || 0) + value;
-
-  		return dataByMonth;
-	});	
-
-	hashSaleCatalog = Object.keys(dataByMonth).map(function(group){
-		var valuet;
-		
-		if(dataByMonth[group] != undefined){
-			valuet = dataByMonth[group];
-			console.log(dataByMonth[group]);
-		};
-
-	 	 return { date: group, value: valuet};
+		return data;
 	});
 
-	return hashSaleCatalog;
+	return result;
 };
+
+function valPurchasesDate(data){
+	var result = data.map( function(item) {
+		var day, month, years, valueSale, type, data;
+
+		date = new Date(item.timestamp);
+		day = date.getDate(); 
+		month = date.getMonth() + 1;
+		year = date.getFullYear();
+
+		if(item.price != "" && item.price != undefined) {	
+			valueSale = item.price;
+			data = { date: year + "-" + month + "-" + day, value: valueSale, type: item.payment_method };
+		}
+		return data;
+	});
+
+	return result;
+}
 
 server.listen(3000);
 
